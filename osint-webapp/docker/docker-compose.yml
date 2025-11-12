@@ -1,0 +1,97 @@
+# Docker Compose for OSINT Tools
+# Used for local development and testing
+
+version: '3.8'
+
+services:
+  # Redis for job queue
+  redis:
+    image: redis:7-alpine
+    container_name: osint-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Sherlock
+  sherlock:
+    build:
+      context: ./sherlock
+      dockerfile: Dockerfile
+    container_name: osint-sherlock
+    image: osint-webapp/sherlock:latest
+    profiles:
+      - tools
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  # theHarvester
+  theharvester:
+    build:
+      context: ./theharvester
+      dockerfile: Dockerfile
+    container_name: osint-theharvester
+    image: osint-webapp/theharvester:latest
+    profiles:
+      - tools
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  # Holehe
+  holehe:
+    build:
+      context: ./holehe
+      dockerfile: Dockerfile
+    container_name: osint-holehe
+    image: osint-webapp/holehe:latest
+    profiles:
+      - tools
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  # PhoneInfoga
+  phoneinfoga:
+    build:
+      context: ./phoneinfoga
+      dockerfile: Dockerfile
+    container_name: osint-phoneinfoga
+    image: osint-webapp/phoneinfoga:latest
+    profiles:
+      - tools
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  default:
+    name: osint-network
