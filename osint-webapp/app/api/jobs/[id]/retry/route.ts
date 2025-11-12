@@ -14,6 +14,7 @@ import {
   logError,
 } from '@/lib/utils/errors';
 import { logger } from '@/lib/utils/logger';
+import type { Database } from '@/types/database.types';
 
 /**
  * POST /api/jobs/[id]/retry
@@ -41,7 +42,7 @@ export async function POST(
       .from('jobs')
       .select('*')
       .eq('id', id)
-      .single();
+      .single<Database['public']['Tables']['jobs']['Row']>();
 
     if (error || !job) {
       throw new NotFoundError('Job');
@@ -63,12 +64,12 @@ export async function POST(
     try {
       await retryJob(id);
     } catch (err) {
-      logger.error('Failed to retry job in queue', err);
+      logger.error('Failed to retry job in queue', err as Error);
       throw new Error('Failed to retry job');
     }
 
     // Update database
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabase as any)
       .from('jobs')
       .update({
         status: 'pending',
@@ -83,7 +84,7 @@ export async function POST(
     }
 
     // Log action
-    await supabase.from('audit_logs').insert({
+    await (supabase as any).from('audit_logs').insert({
       user_id: user.id,
       action: 'job_retried',
       resource_type: 'job',

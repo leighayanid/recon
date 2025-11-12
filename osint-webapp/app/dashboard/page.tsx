@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Search, Globe, Mail, Phone, Image as ImageIcon, Users, Activity, Clock } from "lucide-react"
 
@@ -19,7 +20,7 @@ export default async function DashboardPage() {
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single()
+    .single<{ full_name: string | null }>()
 
   const tools = [
     {
@@ -118,18 +119,17 @@ export default async function DashboardPage() {
         <h2 className="text-2xl font-bold tracking-tight mb-4">Quick Access</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => (
-            <Card
-              key={tool.name}
-              className="hover:shadow-lg transition-shadow cursor-pointer"
-            >
-              <CardHeader>
-                <div className={`w-12 h-12 rounded-lg ${tool.bgColor} flex items-center justify-center mb-2`}>
-                  <tool.icon className={`h-6 w-6 ${tool.color}`} />
-                </div>
-                <CardTitle>{tool.name}</CardTitle>
-                <CardDescription>{tool.description}</CardDescription>
-              </CardHeader>
-            </Card>
+            <Link key={tool.name} href={tool.href}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardHeader>
+                  <div className={`w-12 h-12 rounded-lg ${tool.bgColor} flex items-center justify-center mb-2`}>
+                    <tool.icon className={`h-6 w-6 ${tool.color}`} />
+                  </div>
+                  <CardTitle>{tool.name}</CardTitle>
+                  <CardDescription>{tool.description}</CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>

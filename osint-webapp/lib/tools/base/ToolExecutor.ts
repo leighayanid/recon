@@ -63,7 +63,7 @@ export abstract class ToolExecutor {
   /**
    * Validate input data
    */
-  validateInput(input: unknown): z.SafeParseReturnType<any, any> {
+  validateInput(input: unknown) {
     return this.inputSchema.safeParse(input);
   }
 

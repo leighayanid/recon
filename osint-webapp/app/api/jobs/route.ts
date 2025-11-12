@@ -17,6 +17,7 @@ import {
 import { validateInput, jobInputSchema } from '@/lib/utils/validation';
 import { logger } from '@/lib/utils/logger';
 import type { ToolName } from '@/lib/queue/types';
+import type { Database } from '@/types/database.types';
 
 /**
  * POST /api/jobs
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single();
+      .single<{ role: string }>();
 
     const userRole = (profile?.role || 'user') as 'user' | 'pro' | 'admin';
 
@@ -74,9 +75,9 @@ export async function POST(request: NextRequest) {
         input_data: inputData,
         progress: 0,
         priority: priority || 0,
-      })
+      } as any)
       .select()
-      .single();
+      .single<Database['public']['Tables']['jobs']['Row']>();
 
     if (dbError || !dbJob) {
       logger.error('Failed to create job in database', dbError);
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
       // Rollback database entry
       await supabase.from('jobs').delete().eq('id', dbJob.id);
 
-      logger.error('Failed to add job to queue', queueError);
+      logger.error('Failed to add job to queue', queueError as Error);
       throw new Error('Failed to queue job');
     }
 
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
       tool_name: toolName,
       action: 'job_created',
       metadata: { jobId: dbJob.id },
-    });
+    } as any);
 
     // Return response with rate limit headers
     const response = NextResponse.json(

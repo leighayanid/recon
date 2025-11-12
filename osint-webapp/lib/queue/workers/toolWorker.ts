@@ -9,6 +9,7 @@ import type { JobData, JobResult, WorkerOptions } from '../types';
 import { createAdminClient } from '@/lib/supabase/server';
 import { ToolExecutor } from '@/lib/tools/base/ToolExecutor';
 import { getToolExecutor } from '@/lib/tools/registry';
+import type { Database } from '@/types/database.types';
 
 const QUEUE_NAME = 'osint-tools';
 
@@ -26,8 +27,8 @@ async function processJob(job: Job<JobData>): Promise<JobResult> {
   try {
     // Update job status in database
     const supabase = createAdminClient();
-    await supabase
-      .from('jobs')
+    await (supabase
+      .from('jobs') as any)
       .update({
         status: 'running',
         started_at: new Date().toISOString(),
@@ -57,8 +58,8 @@ async function processJob(job: Job<JobData>): Promise<JobResult> {
         });
 
         // Update progress in database
-        await supabase
-          .from('jobs')
+        await (supabase
+          .from('jobs') as any)
           .update({
             progress: progress.percentage,
           })
@@ -69,8 +70,8 @@ async function processJob(job: Job<JobData>): Promise<JobResult> {
     const executionTime = Date.now() - startTime;
 
     // Update job as completed in database
-    await supabase
-      .from('jobs')
+    await (supabase
+      .from('jobs') as any)
       .update({
         status: 'completed',
         output_data: result,
@@ -94,8 +95,8 @@ async function processJob(job: Job<JobData>): Promise<JobResult> {
 
     // Update job as failed in database
     const supabase = createAdminClient();
-    await supabase
-      .from('jobs')
+    await (supabase
+      .from('jobs') as any)
       .update({
         status: 'failed',
         error_message: errorMessage,
