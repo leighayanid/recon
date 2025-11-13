@@ -1,0 +1,106 @@
+/**
+ * Domain Search API Route
+ * Handles theHarvester domain investigation requests
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { theharvesterInputSchema } from '@/lib/tools/validators/theharvesterValidator';
+import { addJob } from '@/lib/queue/jobQueue';
+import { logUsage } from '@/lib/db/queries';
+
+export async function POST(request: NextRequest) {
+  try {
+    // Get authenticated user
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Parse and validate request body
+    const body = await request.json();
+    const validationResult = theharvesterInputSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid input',
+          details: validationResult.error.errors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const inputData = validationResult.data;
+
+    // Create job in database
+    const { data: job, error: jobError } = await supabase
+      .from('jobs')
+      .insert({
+        user_id: user.id,
+        tool_name: 'theharvester',
+        status: 'pending',
+        input_data: inputData,
+        progress: 0,
+      })
+      .select()
+      .single();
+
+    if (jobError || !job) {
+      console.error('Failed to create job:', jobError);
+      return NextResponse.json(
+        { success: false, error: 'Failed to create job' },
+        { status: 500 }
+      );
+    }
+
+    // Add job to queue
+    try {
+      await addJob({
+        userId: user.id,
+        toolName: 'theharvester',
+        inputData,
+      });
+    } catch (queueError) {
+      console.error('Failed to add job to queue:', queueError);
+      // Update job status to failed
+      await supabase
+        .from('jobs')
+        .update({ status: 'failed', error_message: 'Failed to queue job' })
+        .eq('id', job.id);
+
+      return NextResponse.json(
+        { success: false, error: 'Failed to queue job' },
+        { status: 500 }
+      );
+    }
+
+    // Log usage
+    await logUsage(user.id, 'theharvester', 'search', {
+      domain: inputData.domain,
+    });
+
+    // Return job details
+    return NextResponse.json({
+      success: true,
+      data: {
+        id: job.id,
+        status: job.status,
+        progress: job.progress,
+        createdAt: job.created_at,
+      },
+    });
+  } catch (error) {
+    console.error('Domain search error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
