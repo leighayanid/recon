@@ -6,6 +6,10 @@
 import type { ToolExecutor } from './base/ToolExecutor';
 import type { ToolName } from '@/lib/queue/types';
 import { SherlockExecutor } from './sherlock/SherlockExecutor';
+import { TheHarvesterExecutor } from './theharvester/TheHarvesterExecutor';
+import { HoleheExecutor } from './holehe/HoleheExecutor';
+import { PhoneInfogaExecutor } from './phoneinfoga/PhoneInfogaExecutor';
+import { ExifToolExecutor } from './exiftool/ExifToolExecutor';
 
 // Registry map
 const toolRegistry = new Map<ToolName, ToolExecutor>();
@@ -20,14 +24,14 @@ export function initializeRegistry(): void {
 
   // Register tools
   registerTool('sherlock', new SherlockExecutor());
+  registerTool('theharvester', new TheHarvesterExecutor());
+  registerTool('holehe', new HoleheExecutor());
+  registerTool('phoneinfoga', new PhoneInfogaExecutor());
+  registerTool('exiftool', new ExifToolExecutor());
 
   // TODO: Register additional tools as they are implemented
   // registerTool('maigret', new MaigretExecutor());
-  // registerTool('theharvester', new TheHarvesterExecutor());
   // registerTool('sublist3r', new Sublist3rExecutor());
-  // registerTool('holehe', new HoleheExecutor());
-  // registerTool('phoneinfoga', new PhoneInfogaExecutor());
-  // registerTool('exiftool', new ExifToolExecutor());
 
   console.log(`Tool registry initialized with ${toolRegistry.size} tools`);
 }
