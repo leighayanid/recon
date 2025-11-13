@@ -6,13 +6,16 @@ let client: ReturnType<typeof createBrowserClient<Database>> | undefined
 export function createClient() {
   // Create a singleton client for client-side
   if (!client) {
-    client = createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-  }
-  return client
-}
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// Alias for convenience
-export const supabase = createClient()
+    // Only create client if we have valid credentials
+    if (supabaseUrl && supabaseAnonKey) {
+      client = createBrowserClient<Database>(
+        supabaseUrl,
+        supabaseAnonKey
+      )
+    }
+  }
+  return client!
+}

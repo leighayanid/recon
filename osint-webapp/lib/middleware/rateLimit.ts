@@ -117,8 +117,9 @@ export function createRateLimiter(config: RateLimitConfig) {
     // Use provided identifier or fall back to IP address
     const key =
       identifier ||
-      request.ip ||
+      (request as any).ip ||
       request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
       'unknown';
 
     return checkRateLimit(key, config);

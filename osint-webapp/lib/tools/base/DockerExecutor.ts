@@ -20,7 +20,7 @@ export interface DockerExecutionOptions extends ExecutionOptions {
  * Abstract base class for Docker-based tool executors
  */
 export abstract class DockerExecutor extends ToolExecutor {
-  protected dockerImage: string;
+  protected dockerImage!: string;
   protected defaultMemory = '512m';
   protected defaultCpus = '1.0';
   protected defaultNetwork: 'none' | 'bridge' | 'host' = 'bridge';

@@ -15,6 +15,7 @@ import {
   logError,
 } from '@/lib/utils/errors';
 import { logger } from '@/lib/utils/logger';
+import type { Database } from '@/types/database.types';
 
 /**
  * GET /api/jobs/[id]
@@ -42,7 +43,7 @@ export async function GET(
       .from('jobs')
       .select('*')
       .eq('id', id)
-      .single();
+      .single<Database['public']['Tables']['jobs']['Row']>();
 
     if (error || !job) {
       throw new NotFoundError('Job');
@@ -112,7 +113,7 @@ export async function DELETE(
       .from('jobs')
       .select('*')
       .eq('id', id)
-      .single();
+      .single<Database['public']['Tables']['jobs']['Row']>();
 
     if (error || !job) {
       throw new NotFoundError('Job');
@@ -138,8 +139,8 @@ export async function DELETE(
     }
 
     // Update database
-    const { error: updateError } = await supabase
-      .from('jobs')
+    const { error: updateError } = await (supabase
+      .from('jobs') as any)
       .update({
         status: 'cancelled',
         completed_at: new Date().toISOString(),
@@ -157,7 +158,7 @@ export async function DELETE(
       action: 'job_cancelled',
       resource_type: 'job',
       resource_id: id,
-    });
+    } as any);
 
     return NextResponse.json({
       success: true,

@@ -133,7 +133,7 @@ export function validateInput<T>(
     return { success: true, data: result.data };
   }
 
-  const errors = result.error.errors.map((err) => {
+  const errors = result.error.issues.map((err) => {
     const path = err.path.join('.');
     return path ? `${path}: ${err.message}` : err.message;
   });
@@ -199,7 +199,7 @@ export const jobInputSchema = z.object({
     'phoneinfoga',
     'exiftool',
   ]),
-  inputData: z.record(z.any()),
+  inputData: z.record(z.string(), z.any()),
   investigationId: z.string().uuid().optional(),
   priority: z.number().min(0).max(10).optional(),
 });
