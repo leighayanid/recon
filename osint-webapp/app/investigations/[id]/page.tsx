@@ -7,6 +7,7 @@ import { InvestigationHeader } from "@/components/investigations/InvestigationHe
 import { InvestigationTimeline } from "@/components/investigations/InvestigationTimeline"
 import { InvestigationItems } from "@/components/investigations/InvestigationItems"
 import { AddJobToInvestigation } from "@/components/investigations/AddJobToInvestigation"
+import { ReportBuilder } from "@/components/reports/ReportBuilder"
 import type { InvestigationDetail } from "@/types/investigations"
 
 interface InvestigationPageProps {
@@ -124,7 +125,13 @@ export default async function InvestigationPage({ params }: InvestigationPagePro
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold tracking-tight">Investigation Items</h2>
-            <AddJobToInvestigation investigationId={id} />
+            <div className="flex items-center gap-2">
+              <ReportBuilder
+                investigationId={id}
+                investigationName={investigation.name}
+              />
+              <AddJobToInvestigation investigationId={id} />
+            </div>
           </div>
           <InvestigationItems items={investigationDetail.items} investigationId={id} />
         </div>
